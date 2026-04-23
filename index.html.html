@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Dashboard — Progress Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lime:    #b7f402;
+    --forest:  #122327;
+    --lavender:#dbd1f7;
+    --mint:    #eff7ea;
+    --muted:   #4a6068;
+    --rule:    #c8dcc5;
+    --tag-bg:  #dff2d8;
+    --white:   #ffffff;
+    --accent2: #5a3fbf;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--mint);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--forest);
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--forest);
+    margin: -40px -32px 36px;
+    padding: 36px 32px 30px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 4px solid var(--lime);
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle at top right, rgba(183,244,2,0.1) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(239,247,234,0.4);
+  }
+
+  .header-badge {
+    background: var(--lime);
+    color: var(--forest);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--mint);
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .header h1 span { color: var(--lime); }
+
+  .header-sub {
+    font-size: 13px;
+    color: rgba(239,247,234,0.5);
+    font-weight: 300;
+  }
+
+  /* STAT CARDS */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .stat-val {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--forest);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* OVERALL BAR */
+  .overall {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 28px;
+  }
+
+  .overall-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .overall-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--forest);
+  }
+
+  .overall-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--forest);
+  }
+
+  .bar-track {
+    height: 12px;
+    background: var(--tag-bg);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: var(--lime);
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* PHASE CARDS */
+  .phases { display: flex; flex-direction: column; gap: 10px; }
+
+  .phase-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 16px 18px;
+    transition: border-color 0.2s;
+  }
+
+  .phase-card.is-done {
+    border-left: 4px solid var(--lime);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .phase-card.is-active {
+    border-left: 4px solid #3d9be9;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .phase-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .phase-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--tag-bg);
+    color: var(--muted);
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .phase-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--forest);
+    flex: 1;
+  }
+
+  .phase-pct-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--forest);
+    min-width: 38px;
+    text-align: right;
+  }
+
+  .phase-bar-track {
+    height: 6px;
+    background: var(--tag-bg);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .phase-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.3s ease;
+  }
+
+  .phase-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .owner-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .owner-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .ava-you  { background: var(--forest); color: var(--lime); }
+  .ava-col  { background: var(--lavender); color: var(--accent2); }
+  .ava-both { background: var(--tag-bg); color: var(--muted); }
+
+  .owner-name {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .status-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 99px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .badge-done    { background: var(--lime); color: var(--forest); }
+  .badge-active  { background: #ddeeff; color: #185fa5; }
+  .badge-pending { background: var(--tag-bg); color: var(--muted); }
+
+  /* SLIDER */
+  .slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .slider-wrap input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--tag-bg);
+    border-radius: 99px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .slider-wrap input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--forest);
+    border: 3px solid var(--lime);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .slider-wrap input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  .slider-wrap input[type=range]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--forest);
+    border: 3px solid var(--lime);
+    cursor: pointer;
+  }
+
+  .slider-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 28px;
+  }
+
+  /* TASKS */
+  .tasks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 10px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .task-chip {
+    font-size: 11px;
+    background: var(--tag-bg);
+    color: var(--muted);
+    padding: 3px 10px;
+    border-radius: 99px;
+    border: 1px solid var(--rule);
+  }
+
+  /* FOOTER */
+  footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer span {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .footer-dot {
+    width: 20px; height: 20px;
+    background: var(--lime);
+    border-radius: 50%;
+  }
+
+  .save-indicator {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    transition: color 0.3s;
+  }
+
+  .save-indicator.saved { color: #2a7a4a; }
+
+  @media (max-width: 540px) {
+    .page { padding: 32px 20px 60px; }
+    .header { margin: -32px -20px 28px; padding: 28px 20px 24px; }
+    .header h1 { font-size: 22px; }
+    .stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="header-top">
+      <span class="header-label">CRM Modernisation Project</span>
+      <span class="header-badge" id="header-badge">In Progress</span>
+    </div>
+    <h1>Progress <span>Tracker</span></h1>
+    <p class="header-sub">Drag sliders to update — progress saves automatically in your browser</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Overall</div>
+      <div class="stat-val" id="stat-overall">14%</div>
+      <div class="stat-sub">project complete</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Complete</div>
+      <div class="stat-val" id="stat-done">1</div>
+      <div class="stat-sub">of 7 phases</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active</div>
+      <div class="stat-val" id="stat-active">1</div>
+      <div class="stat-sub">in progress</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Remaining</div>
+      <div class="stat-val" id="stat-remaining">5</div>
+      <div class="stat-sub">phases to go</div>
+    </div>
+  </div>
+
+  <div class="overall">
+    <div class="overall-top">
+      <span class="overall-title">Overall project completion</span>
+      <span class="overall-pct" id="overall-pct">14%</span>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill" id="overall-bar" style="width:14%"></div>
+    </div>
+  </div>
+
+  <div class="phases" id="phases"></div>
+
+  <footer>
+    <span>CRM Dashboard — Progress Tracker</span>
+    <div class="footer-dot"></div>
+    <span class="save-indicator" id="save-indicator">progress auto-saved</span>
+  </footer>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'crm-tracker-v1';
+
+const defaultPhases = [
+  { num:"01", name:"Dashboard built with example data",    pct:100, owner:"both", ownerLabel:"You + Colleague", color:"#b7f402", tasks:["Base 44 setup","Layout design","Sample data loaded","UX validated"] },
+  { num:"02", name:"Review & feedback cycle",              pct:30,  owner:"you",  ownerLabel:"You",             color:"#3d9be9", tasks:["Sales team interviews","Feedback doc","Issue log","Sign-off"] },
+  { num:"03", name:"Action feedback & finalise dashboard", pct:0,   owner:"both", ownerLabel:"You + Colleague", color:"#9b6de9", tasks:["Implement changes","Final layout sign-off","Data structure locked"] },
+  { num:"04", name:"Build API integrations",               pct:0,   owner:"col",  ownerLabel:"Colleague",       color:"#e97c3d", tasks:["Mixpanel API","Qwilr API","Aircall API","Outlook / Graph API"] },
+  { num:"05", name:"Trial run with real data",             pct:0,   owner:"both", ownerLabel:"You + Colleague", color:"#3db89b", tasks:["2-week parallel run","Sales team testing","Feedback collection"] },
+  { num:"06", name:"Fixes & iteration",                    pct:0,   owner:"both", ownerLabel:"You + Colleague", color:"#e9c33d", tasks:["Bug fixes","Data QA","Source system validation"] },
+  { num:"07", name:"Presentation to leadership",           pct:0,   owner:"you",  ownerLabel:"You",             color:"#e96d8a", tasks:["Slide deck","Impact summary","Full rollout proposal"] }
+];
+
+function loadPhases() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const savedPcts = JSON.parse(saved);
+      return defaultPhases.map((p, i) => ({ ...p, pct: savedPcts[i] ?? p.pct }));
+    }
+  } catch(e) {}
+  return defaultPhases.map(p => ({ ...p }));
+}
+
+function savePhases(phases) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(phases.map(p => p.pct)));
+    const ind = document.getElementById('save-indicator');
+    ind.textContent = 'saved \u2713';
+    ind.classList.add('saved');
+    setTimeout(() => { ind.textContent = 'progress auto-saved'; ind.classList.remove('saved'); }, 1500);
+  } catch(e) {}
+}
+
+const phases = loadPhases();
+
+function getStatus(pct) {
+  if (pct >= 100) return 'done';
+  if (pct > 0)    return 'active';
+  return 'pending';
+}
+
+function ownerAvaClass(owner) {
+  return owner === 'you' ? 'ava-you' : owner === 'col' ? 'ava-col' : 'ava-both';
+}
+
+function ownerInitial(owner) {
+  return owner === 'you' ? 'Y' : owner === 'col' ? 'C' : 'YC';
+}
+
+function renderPhases() {
+  const container = document.getElementById('phases');
+  container.innerHTML = phases.map((p, i) => {
+    const st = getStatus(p.pct);
+    const cardClass = st === 'done' ? 'phase-card is-done' : st === 'active' ? 'phase-card is-active' : 'phase-card';
+    const badgeClass = st === 'done' ? 'status-badge badge-done' : st === 'active' ? 'status-badge badge-active' : 'status-badge badge-pending';
+    const badgeText = st === 'done' ? 'Complete' : st === 'active' ? 'In Progress' : 'Pending';
+    return `
+      <div class="${cardClass}" id="card-${i}">
+        <div class="phase-top">
+          <span class="phase-num">${p.num}</span>
+          <span class="phase-name">${p.name}</span>
+          <span class="phase-pct-label" id="pct-${i}">${Math.round(p.pct)}%</span>
+        </div>
+        <div class="phase-bar-track">
+          <div class="phase-bar-fill" id="bar-${i}" style="width:${p.pct}%;background:${p.color}"></div>
+        </div>
+        <div class="phase-bottom">
+          <div class="owner-row">
+            <div class="owner-avatar ${ownerAvaClass(p.owner)}">${ownerInitial(p.owner)}</div>
+            <span class="owner-name">${p.ownerLabel}</span>
+          </div>
+          <span class="${badgeClass}" id="badge-${i}">${badgeText}</span>
+        </div>
+        <div class="slider-wrap">
+          <span class="slider-label">0%</span>
+          <input type="range" min="0" max="100" step="1" value="${Math.round(p.pct)}" data-index="${i}" aria-label="Progress for phase ${p.num}">
+          <span class="slider-label">100%</span>
+        </div>
+        <div class="tasks">
+          ${p.tasks.map(t => `<span class="task-chip">${t}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('input[type=range]').forEach(slider => {
+    slider.addEventListener('input', e => {
+      const i = parseInt(e.target.dataset.index);
+      phases[i].pct = parseInt(e.target.value);
+      updatePhaseUI(i);
+      updateStats();
+      savePhases(phases);
+    });
+  });
+}
+
+function updatePhaseUI(i) {
+  const p = phases[i];
+  const st = getStatus(p.pct);
+  const card = document.getElementById(`card-${i}`);
+  card.className = st === 'done' ? 'phase-card is-done' : st === 'active' ? 'phase-card is-active' : 'phase-card';
+  document.getElementById(`pct-${i}`).textContent = Math.round(p.pct) + '%';
+  document.getElementById(`bar-${i}`).style.width = p.pct + '%';
+  const badge = document.getElementById(`badge-${i}`);
+  badge.className = st === 'done' ? 'status-badge badge-done' : st === 'active' ? 'status-badge badge-active' : 'status-badge badge-pending';
+  badge.textContent = st === 'done' ? 'Complete' : st === 'active' ? 'In Progress' : 'Pending';
+}
+
+function updateStats() {
+  const total = Math.round(phases.reduce((s, p) => s + p.pct, 0) / phases.length);
+  const done  = phases.filter(p => p.pct >= 100).length;
+  const active = phases.filter(p => p.pct > 0 && p.pct < 100).length;
+  const remaining = phases.filter(p => p.pct < 100).length;
+  document.getElementById('stat-overall').textContent   = total + '%';
+  document.getElementById('stat-done').textContent      = done;
+  document.getElementById('stat-active').textContent    = active;
+  document.getElementById('stat-remaining').textContent = remaining;
+  document.getElementById('overall-pct').textContent    = total + '%';
+  document.getElementById('overall-bar').style.width    = total + '%';
+  const badge = document.getElementById('header-badge');
+  if (done === phases.length) { badge.textContent = 'Complete'; badge.style.background = '#b7f402'; }
+  else { badge.textContent = 'In Progress'; badge.style.background = '#b7f402'; }
+}
+
+renderPhases();
+updateStats();
+</script>
+</body>
+</html>
